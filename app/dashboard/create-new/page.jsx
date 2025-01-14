@@ -15,6 +15,7 @@ import AiOutputDialog from '../_components/AiOutputDialog'
 import { db } from '@/config/db'
 import { UserDetailContext } from '@/app/_context/UserDetailContext'
 import { Users } from '@/config/schema'
+import { eq } from 'drizzle-orm'
 
 
 
@@ -77,18 +78,28 @@ function CreateNew() {
     }
 
     const updateUserCredits = async () => {
-        const result = await db.update(Users).set({
-            credits: userDetail?.credits - 1
-        }).returning({ id: Users.id })
+        const result = await db
+            .update(Users)
+            .set({
+                credits: userDetail?.credits - 1
+            })
+            .where(eq(Users.email, user?.primaryEmailAddress?.emailAddress)) // Add this WHERE clause
+            .returning({
+                id: Users.id,
+                credits: Users.credits,
+                email: Users.email
+            });
 
-        if (result) {
+        if (result && result.length > 0) {
             setUserDetail(prev => ({
                 ...prev,
                 credits: userDetail?.credits - 1
-            }))
-            return result[0].id
+            }));
+            return result[0].id;
         }
-    }
+
+        console.log("Credit update completed for user:", result[0].email, "New credits:", result[0].credits);
+    };
 
     return (
         <div>
