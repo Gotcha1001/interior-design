@@ -1,55 +1,69 @@
 "use client"
-
 import { UserDetailContext } from "@/app/_context/UserDetailContext"
 import { Button } from "@/components/ui/button"
-import { db } from "@/config/db"
-import { Users } from "@/config/schema"
-import { PayPalButtons } from "@paypal/react-paypal-js"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useContext, useState } from "react"
-
-
+import { toast } from "react-toastify"
 
 function BuyCredits() {
     const creditsOption = [
         {
             credits: 5,
-            amount: 0.99
+            amount: 29.99  // Changed to ZAR
         },
         {
             credits: 10,
-            amount: 1.99
+            amount: 44.99  // Changed to ZAR
         },
         {
             credits: 25,
-            amount: 3.99
+            amount: 89.99  // Changed to ZAR
         },
         {
             credits: 50,
-            amount: 6.99
+            amount: 149.99  // Changed to ZAR
         },
     ]
 
     const [selectedOption, setSelectedOption] = useState(null)
-    const { userDetail, setUserDetail } = useContext(UserDetailContext)
+    const { userDetail } = useContext(UserDetailContext)
     const router = useRouter()
 
-    const onPaymentSuccess = async () => {
-        console.log("Payment Success....")
-        //Update User Credits In DB
-        const result = await db.update(Users)
-            .set({
-                credits: userDetail?.credits + selectedOption?.credits
-            }).returning({ id: Users.id })
+    const initiatePayment = async () => {
+        if (!selectedOption) {
+            toast.error("Please select a credit package")
+            return
+        }
 
-        if (result) {
-            setUserDetail(prev => ({
-                ...prev,
-                credits: userDetail?.credits + selectedOption?.credits
+        try {
+            const response = await fetch("/api/create-payment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    amount: selectedOption.amount,
+                    credits: selectedOption.credits,
+                    userEmail: userDetail.email,
+                    itemName: `${selectedOption.credits} AI Design Credits`
+                }),
+            })
 
-            }))
-            router.push('/dashboard')
+            if (!response.ok) {
+                toast.error("Failed to initiate payment")
+                return
+            }
+
+            const data = await response.json()
+            if (data.url) {
+                window.location.href = data.url
+            } else {
+                toast.error("Failed to initiate payment")
+            }
+        } catch (error) {
+            toast.error("Error initiating payment")
+            console.error(error)
         }
     }
 
@@ -60,11 +74,18 @@ function BuyCredits() {
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-5 mt-10">
                 {creditsOption.map((item, index) => {
-                    return ( // Add return here
-                        <div key={index} className={`flex flex-col gap-2 justify-center items-center ${selectedOption?.credits === item.credits ? 'border-indigo-600 p-1' : ''}`}>
+                    return (
+                        <div
+                            key={index}
+                            className={`flex flex-col gap-2 justify-center items-center ${selectedOption?.credits === item.credits ? 'border-indigo-600 p-1' : ''
+                                }`}
+                        >
                             <h2 className="font-bold text-3xl text-yellow-500">{item.credits}</h2>
                             <h2 className="font-medium text-xl text-white">Credits</h2>
-                            <Button className="w-full" onClick={() => setSelectedOption(item)}>
+                            <Button
+                                className="w-full"
+                                onClick={() => setSelectedOption(item)}
+                            >
                                 Select
                             </Button>
                             <h2 className="font-bold text-yellow-500 mb-4">R{item.amount}</h2>
@@ -73,25 +94,15 @@ function BuyCredits() {
                 })}
             </div>
 
-            {/* paypal options */}
-            <div className="mt-20">
-                {selectedOption?.amount &&
-                    <PayPalButtons style={{ layout: "horizontal" }}
-                        onApprove={() => onPaymentSuccess()}
-                        onCancel={() => console.log("Payment Cancel")}
-                        createOrder={(data, actions) => {
-                            return actions?.order.create({
-                                purchase_units: [
-                                    {
-                                        amount: {
-                                            value: selectedOption?.amount?.toFixed(2),
-                                            currency_code: 'USD'
-                                        }
-                                    }
-                                ]
-                            })
-                        }}
-                    />}
+            <div className="mt-20 flex justify-center">
+                {selectedOption?.amount && (
+                    <Button
+                        className="w-full md:w-1/2 lg:w-1/3 p-6 bg-green-600 hover:bg-green-700 text-white font-bold"
+                        onClick={initiatePayment}
+                    >
+                        Pay with PayFast
+                    </Button>
+                )}
             </div>
 
             {/* Before and After Images Section */}
@@ -101,7 +112,11 @@ function BuyCredits() {
                     <h3 className="font-semibold text-xl text-white mb-2">Before</h3>
                     <Image
                         className="hover:scale-105 transition-all rounded-lg border-2 border-indigo-500"
-                        src="/before.jpg" alt="Before" width={500} height={500} />
+                        src="/before.jpg"
+                        alt="Before"
+                        width={500}
+                        height={500}
+                    />
                 </div>
 
                 {/* After Image */}
@@ -109,7 +124,11 @@ function BuyCredits() {
                     <h3 className="font-semibold text-xl text-white mb-2">After</h3>
                     <Image
                         className="hover:scale-105 transition-all rounded-lg border-2 border-indigo-500"
-                        src="/after.jpg" alt="After" width={500} height={500} />
+                        src="/after.jpg"
+                        alt="After"
+                        width={500}
+                        height={500}
+                    />
                 </div>
             </div>
         </div>
