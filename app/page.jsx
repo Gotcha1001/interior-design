@@ -34,7 +34,7 @@ export default function Home() {
             }}
           >
             <h1 className="text-4xl sm:text-6xl lg:text-8xl font-extrabold gradient-title pb-6 flex flex-col items-center">
-              Your Place to Re Design. <br /> Your House Beings Here...
+              Your Place to Re Design. <br /> Your House Begins Here...
               <span className="flex flex-col items-center justify-center gap-2 sm:gap-4 w-full mt-4">
                 <span className="text-2xl sm:text-6xl">with</span>
                 <MotionWrapperDelay
@@ -55,7 +55,7 @@ export default function Home() {
                     className="h-32 sm:h-48 md:h-64 w-auto object-contain horizontal-rotate my-2"
                   />
                 </MotionWrapperDelay>
-                <span className="text-2xl sm:text-6xl -mt-2 mb-6">Design AI</span>
+                <span className="text-2xl sm:text-6xl -mt-2 mb-6">Design Interiors AI</span>
               </span>
             </h1>
           </MotionWrapperDelay>
@@ -104,14 +104,20 @@ export default function Home() {
 
         {/* Questions */}
         <Questions />
+        <div className="flex items-center justify-center mt-10 mb-10">
+          <Link href="/dashboard">
+            <Button variant="sex" className={oswald.className}>Start Now</Button>
+          </Link>
+
+        </div>
 
       </div>
 
 
 
 
-      {/* <Button variant="sex" className={oswald.className}>Click Me</Button>
-      <Button className={roboto.className}>Click Me</Button> */}
+
+
     </div>
   );
 }
